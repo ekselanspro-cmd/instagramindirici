@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#e1306c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="İnstaİndir" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <title>Insta İndir</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pink: #e1306c;
+      --orange: #f77737;
+      --purple: #833ab4;
+      --bg: #0d0d0d;
+      --surface: #1a1a1a;
+      --surface2: #242424;
+      --text: #f5f5f5;
+      --muted: #888;
+      --border: rgba(255,255,255,0.08);
+      --grad: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    /* Animated background blobs */
+    .bg-blobs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      animation: float 8s ease-in-out infinite;
+    }
+    .blob-1 { width: 300px; height: 300px; background: var(--pink); top: -100px; right: -80px; animation-delay: 0s; }
+    .blob-2 { width: 200px; height: 200px; background: var(--orange); bottom: 100px; left: -60px; animation-delay: -3s; }
+    .blob-3 { width: 150px; height: 150px; background: var(--purple); top: 50%; left: 50%; animation-delay: -5s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-30px) scale(1.05); }
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 20px 32px;
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 36px;
+      padding-top: 8px;
+    }
+    .header-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--grad);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .header-icon svg { width: 22px; height: 22px; fill: white; }
+    .header-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .header-title span {
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Main card */
+    .main-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+
+    .url-area {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .url-area:focus-within {
+      border-color: var(--pink);
+    }
+    .url-area textarea {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      resize: none;
+      min-height: 44px;
+      max-height: 100px;
+    }
+    .url-area textarea::placeholder { color: var(--muted); }
+    .paste-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--pink);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .paste-btn:active { opacity: 0.7; }
+
+    .dl-btn {
+      width: 100%;
+      height: 52px;
+      background: var(--grad);
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      position: relative;
+      overflow: hidden;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .dl-btn:active { transform: scale(0.98); opacity: 0.9; }
+    .dl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .dl-btn .shine {
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%;
+      height: 100%;
+      background: rgba(255,255,255,0.2);
+      transform: skewX(-20deg);
+      animation: shine 3s infinite;
+    }
+    @keyframes shine {
+      0% { left: -100%; }
+      30%, 100% { left: 150%; }
+    }
+
+    /* Status */
+    .status {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      min-height: 20px;
+      margin-top: 12px;
+      transition: color 0.2s;
+    }
+    .status.ok { color: #4ade80; }
+    .status.err { color: #f87171; }
+
+    /* Result */
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      display: none;
+      animation: slideUp 0.3s ease;
+    }
+    .result-card.show { display: block; }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .chosen-service {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--surface2);
+      border-radius: 14px;
+      margin-bottom: 14px;
+    }
+    .service-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--grad);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .service-info { flex: 1; }
+    .service-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .service-desc { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+    .open-btn {
+      width: 100%;
+      height: 48px;
+      background: none;
+      border: 1px solid var(--pink);
+      border-radius: 14px;
+      color: var(--pink);
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .open-btn:active { background: rgba(225,48,108,0.1); }
+
+    .or-divider {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 12px 0;
+      position: relative;
+    }
+    .or-divider::before, .or-divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background: var(--border);
+    }
+    .or-divider::before { left: 0; }
+    .or-divider::after { right: 0; }
+
+    .try-other {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .other-btn {
+      padding: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      text-align: center;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .other-btn:active { color: var(--text); border-color: var(--pink); }
+
+    /* Footer */
+    .footer {
+      margin-top: auto;
+      padding-top: 20px;
+    }
+    .install-tip {
+      background: rgba(225,48,108,0.08);
+      border: 1px solid rgba(225,48,108,0.2);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      display: none;
+    }
+    .install-tip.show { display: block; }
+    .install-tip strong { color: var(--text); }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <div class="app">
+    <div class="header">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      </div>
+      <div>
+        <div class="header-title">insta<span>indir</span></div>
+      </div>
+    </div>
+
+    <div class="main-card">
+      <div class="card-label">Video linki</div>
+      <div class="url-area">
+        <textarea id="urlInput" placeholder="https://www.instagram.com/reel/..." rows="2"></textarea>
+        <button class="paste-btn" onclick="pasteClipboard()">Yapıştır</button>
+      </div>
+      <button class="dl-btn" id="dlBtn" onclick="handleDownload()">
+        <span class="shine"></span>
+        İndir
+      </button>
+      <div class="status" id="statusMsg"></div>
+    </div>
+
+    <div class="result-card" id="resultCard">
+      <div class="card-label">Seçilen servis</div>
+      <div class="chosen-service">
+        <div class="service-dot" id="serviceEmoji">🎬</div>
+        <div class="service-info">
+          <div class="service-name" id="serviceName">—</div>
+          <div class="service-desc" id="serviceDesc">—</div>
+        </div>
+      </div>
+      <button class="open-btn" id="openBtn" onclick="openService()">Servisi Aç &amp; İndir →</button>
+      <div class="or-divider">veya başka servis dene</div>
+      <div class="try-other" id="otherBtns"></div>
+    </div>
+
+    <div class="footer">
+      <div class="install-tip" id="installTip"></div>
+    </div>
+  </div>
+
+  <script>
+    const SERVICES = [
+      { name: 'SnapSave', desc: 'Reels & Hikayeler için en iyi', emoji: '⚡', url: 'https://snapsave.app/', urlParam: null },
+      { name: 'SaveFrom.net', desc: 'Hızlı ve güvenilir', emoji: '💾', url: 'https://savefrom.net/', urlParam: 'url' },
+      { name: 'InstaDownloader', desc: 'Basit arayüz', emoji: '📥', url: 'https://instadownloader.co/', urlParam: null },
+      { name: 'Inflact', desc: 'HD kalite desteği', emoji: '🎥', url: 'https://inflact.com/downloader/instagram/video/', urlParam: null },
+      { name: 'IgDownloader', desc: 'Ücretsiz & reklamsız', emoji: '🔗', url: 'https://igdownloader.app/', urlParam: null },
+      { name: 'DownloadGram', desc: 'Kolay kullanım', emoji: '🎞️', url: 'https://downloadgram.org/', urlParam: null },
+    ];
+
+    let chosenService = null;
+    let currentUrl = '';
+
+    function pasteClipboard() {
+      navigator.clipboard.readText().then(text => {
+        document.getElementById('urlInput').value = text;
+        if (text.includes('instagram.com')) handleDownload();
+      }).catch(() => {
+        document.getElementById('urlInput').focus();
+        setStatus('Lütfen linki manuel yapıştırın (Ctrl+V)', 'err');
+      });
+    }
+
+    function setStatus(msg, type = '') {
+      const el = document.getElementById('statusMsg');
+      el.textContent = msg;
+      el.className = 'status ' + type;
+    }
+
+    function pickRandom(exclude = null) {
+      const pool = SERVICES.filter(s => s !== exclude);
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function handleDownload() {
+      const url = document.getElementById('urlInput').value.trim();
+      if (!url) { setStatus('Lütfen bir Instagram linki girin', 'err'); return; }
+      if (!url.includes('instagram.com') && !url.includes('instagr.am')) {
+        setStatus('Geçerli bir Instagram linki giriniz', 'err');
+        return;
+      }
+
+      currentUrl = url;
+      const btn = document.getElementById('dlBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Servis seçiliyor...';
+
+      setTimeout(() => {
+        chosenService = pickRandom();
+        showResult(chosenService);
+        btn.disabled = false;
+        btn.innerHTML = '<span class="shine"></span>İndir';
+        setStatus('✓ Servis seçildi!', 'ok');
+      }, 700);
+    }
+
+    function showResult(service) {
+      document.getElementById('serviceEmoji').textContent = service.emoji;
+      document.getElementById('serviceName').textContent = service.name;
+      document.getElementById('serviceDesc').textContent = service.desc;
+
+      const others = SERVICES.filter(s => s !== service).slice(0, 4);
+      document.getElementById('otherBtns').innerHTML = others.map(s =>
+        `<button class="other-btn" onclick="switchService('${s.name}')">${s.emoji} ${s.name}</button>`
+      ).join('');
+
+      document.getElementById('resultCard').className = 'result-card show';
+      document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function switchService(name) {
+      chosenService = SERVICES.find(s => s.name === name);
+      showResult(chosenService);
+      setStatus(`Servis değiştirildi: ${name}`, 'ok');
+    }
+
+    function openService() {
+      if (!chosenService) return;
+      let targetUrl = chosenService.url;
+      if (chosenService.urlParam && currentUrl) {
+        targetUrl += '?' + chosenService.urlParam + '=' + encodeURIComponent(currentUrl);
+      }
+      window.open(targetUrl, '_blank');
+    }
+
+    // PWA install prompt
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      showInstallBanner();
+    });
+
+    function showInstallBanner() {
+      const tip = document.getElementById('installTip');
+      tip.innerHTML = `<strong>📲 Uygulamayı kur!</strong><br>Ana ekrana eklemek için <button onclick="installApp()" style="background:var(--pink);color:white;border:none;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;margin-top:6px;">Yükle</button>`;
+      tip.className = 'install-tip show';
+    }
+
+    function installApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(c => {
+          if (c.outcome === 'accepted') {
+            document.getElementById('installTip').className = 'install-tip';
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
+
+    // iOS install tip
+    const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const isStandalone = window.navigator.standalone;
+    if (isIos && !isStandalone) {
+      const tip = document.getElementById('installTip');
+      tip.innerHTML = `<strong>📲 iPhone\'a kurmak için:</strong><br>Tarayıcının alt menüsündeki <strong>Paylaş</strong> butonuna → <strong>Ana Ekrana Ekle</strong> seçeneğine dokun.`;
+      tip.className = 'install-tip show';
+    }
+
+    // Auto-detect paste
+    document.getElementById('urlInput').addEventListener('paste', () => {
+      setTimeout(() => {
+        const val = document.getElementById('urlInput').value.trim();
+        if (val.includes('instagram.com')) handleDownload();
+      }, 100);
+    });
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
